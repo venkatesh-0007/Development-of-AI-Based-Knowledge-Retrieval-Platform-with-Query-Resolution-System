@@ -1,0 +1,27 @@
+# Computer Networks Fundamentals
+
+A computer network is a set of interconnected computing devices that share resources and communicate through standard networking protocols.
+
+## 1. The OSI 7-Layer Model
+The Open Systems Interconnection (OSI) reference model characterizes computing functions into 7 logical layers:
+1. Physical Layer: Electrical signals, cables, and bit transmission.
+2. Data Link Layer: MAC addressing, frame switching, and error detection (e.g., Ethernet, ARP).
+3. Network Layer: IP addressing, logical routing, and packet forwarding (e.g., IPv4, IPv6, ICMP).
+4. Transport Layer: End-to-end communication, segmentation, and reliability (e.g., TCP, UDP).
+5. Session Layer: Establishing, managing, and terminating sessions between applications.
+6. Presentation Layer: Data translation, syntax negotiation, and encryption (e.g., TLS/SSL).
+7. Application Layer: High-level protocols for user interaction (e.g., HTTP, HTTPS, DNS, SSH, FTP).
+
+## 2. TCP vs UDP Protocols
+Transmission Control Protocol (TCP) is a connection-oriented, reliable protocol that uses a 3-way handshake (SYN, SYN-ACK, ACK), sequence numbers, flow control, and retransmission mechanisms.
+User Datagram Protocol (UDP) is a connectionless, lightweight, and fast protocol without delivery guarantees, error recovery, or flow control. It is commonly used for real-time applications like video streaming, gaming, and VoIP.
+
+## 3. DNS Resolution Procedure
+Domain Name System (DNS) translates human-friendly hostnames (e.g., example.com) into numerical IP addresses.
+The resolution process proceeds as follows:
+1. Client checks local browser cache and operating system resolver cache.
+2. If not found, the query is forwarded to the Recursive DNS Resolver (e.g., ISP or 8.8.8.8).
+3. The Recursive Resolver queries the Root Nameserver to locate the Top-Level Domain (TLD) server (e.g., .com).
+4. The TLD Nameserver returns the IP of the Authoritative Nameserver responsible for the specific domain.
+5. The Authoritative Nameserver provides the actual IP address record (A / AAAA record).
+6. The resolver caches the record and returns the IP address to the client.
