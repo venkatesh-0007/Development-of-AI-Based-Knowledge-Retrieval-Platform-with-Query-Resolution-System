@@ -1,4 +1,8 @@
 import unittest
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from unittest.mock import MagicMock
 from app.agents.orchestrator import Orchestrator
 
