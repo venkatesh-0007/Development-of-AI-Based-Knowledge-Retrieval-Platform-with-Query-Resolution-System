@@ -10,41 +10,49 @@ An enterprise-grade, multi-agent Retrieval-Augmented Generation (RAG) platform d
 
 ---
 
-## 📁 Repository Structure
+## 📁 Repository Structure by Milestones
 
 ```text
 Development-of-AI-Based-Knowledge-Retrieval-Platform-with-Query-Resolution-System/
-├── milestone_1/                    # Milestone 1: Foundation & Knowledge Ingestion
-│   ├── app/                        # Streamlit UI, Multi-Agent, Ingestion, Embeddings, Vectorstore
+├── milestone_1/                    # Milestone 1: Foundation & Knowledge Ingestion (COMPLETED)
+│   ├── app/                        # Ingestion, Embeddings, ChromaDB, Baseline Retrieval
 │   ├── data/                       # Vector store path and sample domain datasets (ML & Networks)
 │   ├── docs/                       # Architecture diagrams, tech stack, data models, research, evaluation
-│   ├── tests/                      # Automated unit test suite
-│   ├── README.md                   # Milestone 1 specific documentation
-│   ├── requirements.txt            # Dependencies
-│   └── .env.example                # Environment variables template
+│   ├── tests/                      # Automated unit tests (11 passing)
+│   └── README.md
+├── milestone_2/                    # Milestone 2: Multi-Agent Query Resolution & Response (COMPLETED)
+│   ├── app/                        # Query Understanding, Retrieval, Response Generation, Orchestration, UI
+│   ├── data/                       # Vector store path and sample domain datasets
+│   ├── docs/                       # Technical specs (M2.1, M2.2, M2.3, M2.4, Status)
+│   ├── tests/                      # Automated unit tests (24 passing)
+│   └── README.md
+├── milestone_3/                    # Milestone 3: Advanced Clarification, Memory, Voice & Transparency
+│   ├── app/                        # Clarification Agent, Orchestrator, Streamlit UI, Retrieval, Ingestion
+│   ├── data/                       # Vector store path and sample domain datasets
+│   ├── docs/                       # Technical specs (M3.1 Clarification, Status)
+│   ├── tests/                      # Automated unit tests (17 passing)
+│   └── README.md
 ├── .gitignore                      # Global Git ignore rules
-└── README.md                       # Main project overview
+└── README.md                       # Main repository overview
 ```
 
 ---
 
-## 📌 Milestone 1 Overview
+## 📌 Milestones Roadmap & Status
 
-Milestone 1 establishes the core architectural foundation, multi-format knowledge ingestion pipeline, vector store indexing, lightweight multi-agent orchestration, and semantic retrieval evaluation.
-
-### Deliverables Checklist
-
-- [x] **M1.1 Research & Technical Understanding**: Documented RAG pipelines, chunking, embeddings, vector search, multi-agent patterns, and Web Speech API ([`milestone_1/docs/m1.1-research.md`](milestone_1/docs/m1.1-research.md)).
-- [x] **M1.2 System Architecture & Design**: Architecture diagram ([`milestone_1/docs/architecture.png`](milestone_1/docs/architecture.png)), technical stack selection ([`milestone_1/docs/tech-stack.md`](milestone_1/docs/tech-stack.md)), agent workflows ([`milestone_1/docs/system-architecture.md`](milestone_1/docs/system-architecture.md)), and data models ([`milestone_1/docs/data-models.md`](milestone_1/docs/data-models.md)).
-- [x] **M1.3 Knowledge Base Ingestion Module**: Multi-format parsing (PDF, DOCX, TXT, CSV), boundary-aware chunking with overlap, `all-MiniLM-L6-v2` embeddings, and persistent ChromaDB indexing.
-- [x] **M1.4 Retrieval Pipeline & Validation**: Top-K semantic retrieval, 5-agent query resolution orchestration, 2-domain benchmark dataset, and evaluation metrics framework ([`milestone_1/docs/m1.4-evaluation.md`](milestone_1/docs/m1.4-evaluation.md)).
+| Milestone | Scope & Deliverables | Status | Link |
+|---|---|:---:|---|
+| **Milestone 1** | Foundation & Ingestion: Multi-format parsing (PDF, DOCX, TXT, CSV), chunking with overlap, `all-MiniLM-L6-v2` embeddings, ChromaDB, 5 agent definitions, Streamlit prototype, and 2-domain evaluation. | **Completed** | [📂 `milestone_1/`](milestone_1/) |
+| **Milestone 2** | Multi-Agent Query Resolution: M2.1 Query Understanding Agent (intent classification, ambiguity detection), M2.2 Retrieval Agent (dynamic Top-K, relevance filtering), M2.3 Response Generation Agent (grounded synthesis, confidence indicators, source citations), M2.4 Orchestration Layer & interactive Streamlit UI. | **Completed** | [📂 `milestone_2/`](milestone_2/) |
+| **Milestone 3** | Advanced Query Resolution & Voice: M3.1 Clarification Agent (Completed), M3.2 Multi-Turn Memory, M3.3 Web Speech API STT/TTS, M3.4 Response Transparency Panel. | **M3.1 Completed** | [📂 `milestone_3/`](milestone_3/) |
+| **Milestone 4** | Benchmarking & Enterprise Deployment: Precision/Recall/MRR evaluation, Knowledge Gap detection, Docker containerization, Query analytics. | *Planned* | `milestone_4/` |
 
 ---
 
-## 🚀 Quickstart: Running Milestone 1
+## 🚀 Quickstart: Running Milestone 2
 
 ```bash
-cd milestone_1
+cd milestone_2
 
 # Create and activate virtual environment
 python3 -m venv .venv
@@ -53,11 +61,9 @@ source .venv/bin/activate       # On Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run Streamlit Web UI
+# Run Streamlit Web Application
 streamlit run app/main.py
 
 # Run Unit Tests
-python3 -m unittest discover -s tests
+python3 -m unittest discover -s tests -v
 ```
-
-For complete documentation and details, see [**`milestone_1/README.md`**](milestone_1/README.md).

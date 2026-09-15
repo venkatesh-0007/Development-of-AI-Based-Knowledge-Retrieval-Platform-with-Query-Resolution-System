@@ -1,0 +1,24 @@
+# Machine Learning Overview
+
+Machine Learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.
+
+## 1. Supervised Learning vs Unsupervised Learning
+Supervised learning algorithms are trained using labeled datasets where the input features are mapped to known output labels (e.g., classification and regression). Common examples include Linear Regression, Support Vector Machines (SVM), and Random Forests.
+Unsupervised learning algorithms find hidden patterns or groupings in unlabeled datasets. Common examples include K-Means Clustering, Principal Component Analysis (PCA), and Hierarchical Clustering.
+
+## 2. Overfitting and Underfitting
+Overfitting occurs when a machine learning model learns the training data too well, capturing noise and fluctuations along with the underlying patterns. As a result, the model achieves high accuracy on training data but fails to generalize to new, unseen test data.
+Techniques to prevent overfitting include:
+- Regularization (L1 / Lasso and L2 / Ridge)
+- Cross-validation (e.g., k-fold cross-validation)
+- Early stopping during gradient descent optimization
+- Pruning in decision trees and dropout in deep neural networks
+- Increasing the training dataset size
+
+Underfitting occurs when a model is too simple to capture the underlying structure of the data, resulting in poor performance on both training and test data.
+
+## 3. Gradient Descent Optimization
+Gradient descent is a first-order iterative optimization algorithm for finding a local minimum of a differentiable objective function.
+The update rule calculates the gradient of the loss function with respect to model parameters:
+w = w - alpha * grad(L(w))
+where alpha represents the learning rate. Variations include Batch Gradient Descent, Stochastic Gradient Descent (SGD), and Mini-batch Gradient Descent.
