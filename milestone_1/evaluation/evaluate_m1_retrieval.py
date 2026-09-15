@@ -3,9 +3,10 @@ import sys
 import time
 from pathlib import Path
 
-# Add project roots to sys.path
-root_dir = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(root_dir / "milestone_1"))
+# Add milestone_1 root to sys.path
+milestone_1_root = Path(__file__).resolve().parent.parent
+if str(milestone_1_root) not in sys.path:
+    sys.path.insert(0, str(milestone_1_root))
 
 from app.embeddings.embedder import Embedder
 from app.vectorstore.chroma_store import ChromaStore
@@ -38,7 +39,7 @@ def run_evaluation():
     retrieval = RetrievalPipeline(embedder, store)
 
     # Ingest sample docs
-    sample_dir = root_dir / "milestone_1" / "data" / "sample_docs"
+    sample_dir = milestone_1_root / "data" / "sample_docs"
     for doc in sample_dir.glob("*.*"):
         if doc.suffix.lower() in [".txt", ".csv"]:
             ingestion.ingest(doc.read_bytes(), doc.name, chunk_size=800, overlap=100)

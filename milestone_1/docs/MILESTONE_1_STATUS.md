@@ -16,7 +16,7 @@
 - [x] Streamlit demonstration UI
 - [x] Basic tests (`tests/` - 11 unit tests passing)
 - [x] M1.1 research document
-- [x] M1.4 evaluation protocol and empirical validation (`evaluation/evaluate_m1_retrieval.py` - Top-5 100%, Top-1 60%)
+- [x] M1.4 evaluation protocol and empirical validation (`milestone_1/evaluation/evaluate_m1_retrieval.py` - Top-5 100%, Top-1 60%)
 
 ## Validation Summary
 Empirical evaluation executed across two knowledge domains (Machine Learning and Computer Networks) with 10 benchmark queries. All results documented in `docs/m1.4-evaluation.md`.
