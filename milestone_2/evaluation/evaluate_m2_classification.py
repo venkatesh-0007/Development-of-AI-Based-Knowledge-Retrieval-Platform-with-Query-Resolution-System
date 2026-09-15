@@ -3,8 +3,9 @@ import sys
 import time
 from pathlib import Path
 
-root_dir = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(root_dir / "milestone_2"))
+milestone_2_root = Path(__file__).resolve().parent.parent
+if str(milestone_2_root) not in sys.path:
+    sys.path.insert(0, str(milestone_2_root))
 
 from app.agents.query_understanding import QueryUnderstandingAgent
 from app.agents.models import QueryType, RoutingTarget
