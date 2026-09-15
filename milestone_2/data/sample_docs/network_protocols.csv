@@ -1,0 +1,8 @@
+protocol_name,port_number,transport_layer,description
+HTTP,80,TCP,Hypertext Transfer Protocol for unencrypted web communication
+HTTPS,443,TCP,Secure HTTP with TLS/SSL encryption
+DNS,53,UDP/TCP,Domain Name System resolution
+SSH,22,TCP,Secure Shell for remote terminal access
+FTP,21,TCP,File Transfer Protocol for file manipulation
+SMTP,25,TCP,Simple Mail Transfer Protocol for email transmission
+DHCP,67/68,UDP,Dynamic Host Configuration Protocol for automatic IP assignment

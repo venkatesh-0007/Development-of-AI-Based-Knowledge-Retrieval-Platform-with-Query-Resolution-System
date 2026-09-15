@@ -1,0 +1,8 @@
+algorithm_name,category,primary_use_case,complexity_training
+Linear Regression,Supervised,Continuous value prediction,O(p^2 n + p^3)
+Logistic Regression,Supervised,Binary and multi-class classification,O(p n)
+Decision Trees,Supervised,Non-linear classification and regression,O(p n log n)
+Random Forest,Supervised,Ensemble classification and regression,O(k p n log n)
+K-Means Clustering,Unsupervised,Centroid-based data partitioning,O(k n i p)
+PCA,Unsupervised,Dimensionality reduction and feature extraction,O(p^2 n + p^3)
+SVM,Supervised,High-dimensional classification,O(n^2 to n^3)
