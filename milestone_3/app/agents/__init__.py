@@ -10,6 +10,11 @@ from .models import (
     RetrievalChunk,
     RetrievalResult,
     SourceAttribution,
+    TransparencyScoreBreakdown,
+    TransparencyPanelPayload,
+    SpeechConfig,
+    ConversationTurn,
+    ConversationSession,
     AgentResponse,
     OrchestrationResult
 )
@@ -17,6 +22,8 @@ from .clarification import ClarificationAgent
 from .query_understanding import QueryUnderstandingAgent
 from .retrieval import RetrievalAgent
 from .response_generation import ResponseGenerationAgent
+from .memory import ConversationMemoryAgent
+from .voice import VoiceModule
 from .orchestrator import MultiAgentOrchestrator
 
 __all__ = [
@@ -30,11 +37,19 @@ __all__ = [
     "RetrievalChunk",
     "RetrievalResult",
     "SourceAttribution",
+    "TransparencyScoreBreakdown",
+    "TransparencyPanelPayload",
+    "SpeechConfig",
+    "ConversationTurn",
+    "ConversationSession",
     "AgentResponse",
     "OrchestrationResult",
     "ClarificationAgent",
     "QueryUnderstandingAgent",
     "RetrievalAgent",
     "ResponseGenerationAgent",
+    "ConversationMemoryAgent",
+    "VoiceModule",
     "MultiAgentOrchestrator",
 ]
+

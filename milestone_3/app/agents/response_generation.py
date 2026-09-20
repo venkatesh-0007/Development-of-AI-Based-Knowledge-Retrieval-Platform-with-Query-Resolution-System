@@ -1,8 +1,8 @@
-"""Response Generation Agent for Milestone 3 (M3.1 integration).
+"""Response Generation Agent for Milestone 3 (M3.4 Transparency & M3.3 Voice integration).
 
 Synthesizes grounded responses from retrieved knowledge chunks with query-type tailored
 formatting (factual, procedural, comparative, clarified), application-level confidence scoring,
-and source attribution including document name, page, and snippet.
+source attribution, full Response Transparency Panel payload, and spoken text rendering.
 """
 import re
 from pathlib import Path
@@ -14,11 +14,14 @@ from .models import (
     RetrievalChunk,
     SourceAttribution,
     AgentResponse,
-    ConfidenceLevel
+    ConfidenceLevel,
+    TransparencyScoreBreakdown,
+    TransparencyPanelPayload
 )
+from .voice import VoiceModule
 
 class ResponseGenerationAgent:
-    """Generates grounded responses strictly supported by retrieved context."""
+    """Generates grounded responses strictly supported by retrieved context with transparency payload."""
 
     def __init__(self, llm_client: Optional[Any] = None, prompt_path: Optional[str] = None):
         """
@@ -28,6 +31,7 @@ class ResponseGenerationAgent:
         """
         self.llm_client = llm_client
         self.prompt_template = self._load_prompt(prompt_path)
+        self.voice_module = VoiceModule()
 
     def _load_prompt(self, prompt_path: Optional[str]) -> str:
         if prompt_path and Path(prompt_path).exists():
@@ -48,12 +52,36 @@ class ResponseGenerationAgent:
         refined_query: Optional[str] = None
     ) -> AgentResponse:
         """
-        Generate grounded response, calculate confidence, and build source attribution.
+        Generate grounded response, calculate confidence, build source attribution,
+        and construct the full Transparency Panel payload.
         """
         # Handle empty or low-confidence evidence cases
         if not retrieval_result.has_sufficient_evidence or not retrieval_result.chunks:
+            answer_text = "No sufficiently relevant information was found in the knowledge base to answer your question."
+            breakdown = TransparencyScoreBreakdown(
+                top_chunk_score=retrieval_result.top_score,
+                avg_top_k_score=0.0,
+                combined_score=retrieval_result.top_score,
+                threshold=retrieval_result.confidence_threshold,
+                confidence_level=ConfidenceLevel.NONE
+            )
+            transparency_payload = TransparencyPanelPayload(
+                query=query_analysis.query,
+                refined_query=refined_query,
+                confidence_level=ConfidenceLevel.NONE,
+                confidence_score=retrieval_result.top_score,
+                score_breakdown=breakdown,
+                source_documents=[],
+                retrieved_chunks=retrieval_result.chunks,
+                citations=[],
+                evidence_sufficient=False,
+                low_confidence_reason=f"Top retrieval similarity score ({retrieval_result.top_score:.3f}) fell below the active confidence threshold ({retrieval_result.confidence_threshold:.3f}).",
+                filtered_out_count=retrieval_result.filtered_count
+            )
+            spoken = self.voice_module.clean_for_speech(answer_text)
+
             return AgentResponse(
-                answer="No sufficiently relevant information was found in the knowledge base to answer your question.",
+                answer=answer_text,
                 confidence_score=retrieval_result.top_score,
                 confidence_level=ConfidenceLevel.NONE,
                 sources=[],
@@ -61,13 +89,19 @@ class ResponseGenerationAgent:
                 has_sufficient_evidence=False,
                 requires_clarification=False,
                 is_clarified_resolution=is_clarified_resolution,
-                refined_query=refined_query
+                refined_query=refined_query,
+                transparency_payload=transparency_payload,
+                spoken_text=spoken
             )
 
         # Build source attributions
         sources: List[SourceAttribution] = []
+        source_doc_names: List[str] = []
         for chunk in retrieval_result.chunks:
             doc_name = chunk.document_name or chunk.metadata.get("source", "Unknown Document")
+            if doc_name not in source_doc_names:
+                source_doc_names.append(doc_name)
+
             page_val = chunk.page
             section_val = chunk.section
             snippet = chunk.content[:150].strip() + ("..." if len(chunk.content) > 150 else "")
@@ -81,14 +115,31 @@ class ResponseGenerationAgent:
                 section=section_val
             ))
 
-        # Compute application-level confidence score & level
-        confidence_score, confidence_level = self._compute_confidence(retrieval_result)
+        # Compute application-level confidence score & breakdown
+        confidence_score, confidence_level, score_breakdown = self._compute_confidence(retrieval_result)
 
         # Generate answer text
         if self.llm_client is not None and hasattr(self.llm_client, "generate"):
             answer = self._generate_with_llm(query_analysis, retrieval_result.chunks)
         else:
             answer = self._generate_deterministic(query_analysis, retrieval_result.chunks)
+
+        spoken = self.voice_module.clean_for_speech(answer)
+
+        # Build complete Response Transparency Panel Payload (M3.4)
+        transparency_payload = TransparencyPanelPayload(
+            query=query_analysis.query,
+            refined_query=refined_query,
+            confidence_level=confidence_level,
+            confidence_score=confidence_score,
+            score_breakdown=score_breakdown,
+            source_documents=source_doc_names,
+            retrieved_chunks=retrieval_result.chunks,
+            citations=sources,
+            evidence_sufficient=True,
+            low_confidence_reason=None if confidence_level in (ConfidenceLevel.HIGH, ConfidenceLevel.MEDIUM) else "Top chunks exhibit moderate similarity near boundary threshold.",
+            filtered_out_count=retrieval_result.filtered_count
+        )
 
         return AgentResponse(
             answer=answer,
@@ -99,13 +150,22 @@ class ResponseGenerationAgent:
             has_sufficient_evidence=True,
             requires_clarification=False,
             is_clarified_resolution=is_clarified_resolution,
-            refined_query=refined_query
+            refined_query=refined_query,
+            transparency_payload=transparency_payload,
+            spoken_text=spoken
         )
 
     def _compute_confidence(self, retrieval_result: RetrievalResult) -> tuple:
-        """Calculate application-level retrieval-based confidence score and categorization."""
+        """Calculate application-level retrieval-based confidence score, categorization, and breakdown."""
         if not retrieval_result.chunks:
-            return 0.0, ConfidenceLevel.NONE
+            breakdown = TransparencyScoreBreakdown(
+                top_chunk_score=0.0,
+                avg_top_k_score=0.0,
+                combined_score=0.0,
+                threshold=retrieval_result.confidence_threshold,
+                confidence_level=ConfidenceLevel.NONE
+            )
+            return 0.0, ConfidenceLevel.NONE, breakdown
 
         top_score = retrieval_result.top_score
         avg_score = sum(c.similarity_score for c in retrieval_result.chunks) / len(retrieval_result.chunks)
@@ -122,7 +182,15 @@ class ResponseGenerationAgent:
         else:
             level = ConfidenceLevel.NONE
 
-        return final_score, level
+        breakdown = TransparencyScoreBreakdown(
+            top_chunk_score=top_score,
+            avg_top_k_score=round(avg_score, 4),
+            combined_score=final_score,
+            threshold=retrieval_result.confidence_threshold,
+            confidence_level=level
+        )
+
+        return final_score, level, breakdown
 
     def _generate_deterministic(
         self,
