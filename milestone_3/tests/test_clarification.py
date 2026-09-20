@@ -253,9 +253,60 @@ class TestClarificationAgent(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.agent.resolve_clarification(req.clarification_id, "Logistic Regression")
 
+    def test_meaningless_clarification_response_raises_error(self):
+        """Attempting to resolve with an uninformative response like 'I don't know' must raise ValueError."""
+        req = self.agent.analyze_query("how does it work?")
+        self.agent.store_pending(req)
+
+        for vague_resp in ["I don't know", "dont know", "no idea", "not sure", "idk", "none", "N/A"]:
+            with self.assertRaises(ValueError):
+                self.agent.resolve_clarification(req.clarification_id, vague_resp)
+
     # -------------------------------------------------------------
-    # 7. Query Refinement Accuracy
+    # 7. Intent-Aware Query Refinement Accuracy
     # -------------------------------------------------------------
+    def test_query_refinement_how_does_it_work_direct(self):
+        """'How does it work?' + 'TCP' -> 'How does TCP work?'"""
+        orig = "How does it work?"
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "TCP", req)
+        self.assertEqual(refined, "How does TCP work?")
+
+    def test_query_refinement_how_does_it_work_conversational(self):
+        """'How does it work?' + 'I am asking about TCP protocol' -> 'How does the TCP protocol work?'"""
+        orig = "How does it work?"
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "I am asking about TCP protocol", req)
+        self.assertEqual(refined, "How does the TCP protocol work?")
+
+    def test_query_refinement_what_is_it(self):
+        """'What is it?' + 'TCP' -> 'What is TCP?'"""
+        orig = "What is it?"
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "TCP", req)
+        self.assertEqual(refined, "What is TCP?")
+
+    def test_query_refinement_what_are_its_advantages(self):
+        """'What are its advantages?' + 'TCP' -> 'What are the advantages of TCP?'"""
+        orig = "What are its advantages?"
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "TCP", req)
+        self.assertEqual(refined, "What are the advantages of TCP?")
+
+    def test_query_refinement_explain_it(self):
+        """'Explain it.' + 'TCP three-way handshake' -> 'Explain TCP three-way handshake'"""
+        orig = "Explain it."
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "TCP three-way handshake", req)
+        self.assertEqual(refined, "Explain TCP three-way handshake")
+
+    def test_query_refinement_compare_it_with_udp(self):
+        """'Compare it with UDP.' + 'TCP' -> 'Compare TCP with UDP'"""
+        orig = "Compare it with UDP."
+        req = self.agent.analyze_query(orig)
+        refined = self.agent.refine_query(orig, "TCP", req)
+        self.assertEqual(refined, "Compare TCP with UDP")
+
     def test_query_refinement_polysemous_term(self):
         """Refines polysemous query by replacing ambiguous keyword."""
         orig = "Explain tree"
@@ -280,3 +331,4 @@ class TestClarificationAgent(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

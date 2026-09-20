@@ -166,6 +166,14 @@ class ClarificationAgent:
         r"\b(?:that\s+thing|this\s+thing|that\s+one|this\s+one)\b",
     ]
 
+    # Meaningless / non-informative clarification responses
+    INVALID_RESPONSES: Set[str] = {
+        "i don't know", "i dont know", "dont know", "don't know", "idk",
+        "no idea", "not sure", "i'm not sure", "im not sure", "i am not sure",
+        "none", "na", "n/a", "whatever", "anything", "nothing", "?", "help",
+        "no", "nope", "i have no idea", "unsure", "i do not know", "dunno"
+    }
+
     def __init__(self):
         # In-memory storage for active clarification requests (clarification_id -> ClarificationRequest)
         self._pending_clarifications: Dict[str, ClarificationRequest] = {}
@@ -361,7 +369,7 @@ class ClarificationAgent:
                     original_query=raw_query,
                     clarification_type=ClarificationType.MULTI_PART_UNRESOLVED,
                     reason=f"Your query contains {len(parts)} independent sub-questions that span multiple distinct topics.",
-                    follow_up="Would you like to resolve all sub-questions sequentially, or focus on a specific sub-question first?",
+                    follow_up="Would you like to resolve all sub-questions comprehensively, or focus on a specific sub-question first?",
                     options=[
                         "Resolve all sub-questions comprehensively",
                         f"Focus first on: '{parts[0]}'",
@@ -425,7 +433,7 @@ class ClarificationAgent:
         """
         Safely transition clarification from PENDING -> RESOLVED and return (refined_query, clarification_request).
 
-        :raises ValueError: if clarification_id is invalid/missing, already resolved, or response is empty.
+        :raises ValueError: if clarification_id is invalid/missing, already resolved, or response is empty/invalid.
         """
         if not clarification_id or clarification_id not in self._pending_clarifications:
             raise ValueError(f"Clarification ID '{clarification_id}' is invalid or does not exist.")
@@ -442,6 +450,12 @@ class ClarificationAgent:
             raise ValueError("Clarification response cannot be empty or whitespace only.")
 
         clean_resp = user_response.strip()
+
+        # Check for meaningless or uninformative response
+        normalized_check = clean_resp.lower().strip("?.!, ")
+        if normalized_check in self.INVALID_RESPONSES:
+            raise ValueError("Clarification response is invalid or uninformative. Please provide a specific topic or clarification.")
+
         refined = self.refine_query(req.original_query, clean_resp, req)
 
         # Update state lifecycle
@@ -454,11 +468,52 @@ class ClarificationAgent:
 
     def cancel_clarification(self, clarification_id: str) -> Optional[ClarificationRequest]:
         """Cancel a pending clarification request."""
-        if clarification_id in self._pending_clarifications:
-            req = self._pending_clarifications[clarification_id]
-            req.status = ClarificationStatus.CANCELLED
-            return req
-        return None
+        if not clarification_id or clarification_id not in self._pending_clarifications:
+            raise ValueError(f"Clarification ID '{clarification_id}' is invalid or does not exist.")
+
+        req = self._pending_clarifications[clarification_id]
+        if req.status == ClarificationStatus.RESOLVED:
+            raise ValueError(f"Cannot cancel clarification '{clarification_id}' as it has already been resolved.")
+
+        req.status = ClarificationStatus.CANCELLED
+        return req
+
+    def _extract_clarified_entity(self, user_response: str) -> str:
+        """
+        Extract and normalize the core clarified subject/entity from conversational responses.
+        Handles conversational prefixes like 'I am asking about TCP protocol' -> 'TCP protocol'.
+        """
+        text = user_response.strip()
+
+        # Strip option prefixes: "📌 1. Decision Trees", "A) TCP", "1. TCP"
+        text = re.sub(r"^[📌\s0-9]+[\.\)]\s*", "", text)
+        text = re.sub(r"^[a-zA-Z][\.\)]\s*", "", text)
+
+        # Strip parenthetical metadata notes: "Decision Trees (Machine Learning / Classification)" -> "Decision Trees"
+        text = re.sub(r"\s*\([^)]*\)", "", text).strip()
+
+        # Strip conversational prefix phrases:
+        conversational_prefixes = [
+            r"^i\s+am\s+(?:asking|talking|referring|inquiring)\s+about\s+(?:the\s+)?",
+            r"^i\'?m\s+(?:asking|talking|referring|inquiring)\s+about\s+(?:the\s+)?",
+            r"^i\s+(?:mean|meant|was\s+referring\s+to|refer\s+to)\s+(?:the\s+)?",
+            r"^i\s+(?:want|would\s+like)\s+to\s+know\s+about\s+(?:the\s+)?",
+            r"^about\s+(?:the\s+)?",
+            r"^it\'?s\s+(?:about\s+)?(?:the\s+)?",
+            r"^it\s+is\s+(?:about\s+)?(?:the\s+)?",
+            r"^referring\s+to\s+(?:the\s+)?",
+            r"^asking\s+about\s+(?:the\s+)?",
+            r"^focus\s+(?:first\s+|only\s+)?on:\s*",
+            r"^for\s+(?:the\s+)?"
+        ]
+        for pattern in conversational_prefixes:
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
+
+        # Strip quotes and trailing punctuation
+        text = text.strip("\"'’` ")
+        text = re.sub(r"^[?.!,]+|[?.!,]+$", "", text).strip()
+
+        return text
 
     def refine_query(
         self,
@@ -467,68 +522,88 @@ class ClarificationAgent:
         clarification_request: Optional[ClarificationRequest] = None
     ) -> str:
         """
-        Combine user's original query and clarification response into a refined, standalone query.
-        Preserves original intent without brittle string substitution.
+        Combine user's original query and clarification response into an intent-aware, standalone query.
+        Extracts the clarified entity and substitutes ambiguous/incomplete references.
         """
         clean_orig = original_query.strip()
         clean_resp = user_response.strip()
 
-        # Sanitize selected option prefixes & notes e.g. "📌 1. Decision Trees (Machine Learning)" -> "Decision Trees"
-        clean_resp_text = re.sub(r"^[📌\s0-9]+[\.\)]\s*", "", clean_resp)
-        clean_resp_text = re.sub(r"\s*\([^)]*\)", "", clean_resp_text).strip()
-
-        # Case 1: Focus selection on multi-part query e.g. "Focus first on: 'What is TCP'"
+        # Case 0: Focus selection on multi-part query e.g. "Focus first on: 'What is TCP'"
         focus_match = re.search(r"focus\s+(?:first\s+|only\s+)?on:\s*['\"]?([^'\"]+)['\"]?", clean_resp, flags=re.IGNORECASE)
         if focus_match:
             return focus_match.group(1).strip()
 
-        # Case 2: Polysemous/ambiguous domain keyword replacement e.g. orig: "Explain tree", resp: "Decision Trees"
-        if clarification_request and clarification_request.clarification_type == ClarificationType.MULTIPLE_INTERPRETATIONS:
-            # Find the polysemous term in the original query
-            for term in self.DOMAIN_DISAMBIGUATION_MAP:
-                if re.search(rf"\b{term}\b", clean_orig, flags=re.IGNORECASE):
-                    # Replace the bare polysemous term with the specific disambiguated term
-                    refined = re.sub(rf"\b{term}\b", clean_resp_text, clean_orig, flags=re.IGNORECASE)
-                    return self._clean_refined(refined)
+        entity = self._extract_clarified_entity(clean_resp)
+        if not entity:
+            entity = clean_resp
 
-            prefix_match = re.match(r"^(explain|what\s+is|what\s+are|how\s+does|how\s+do|how\s+to|tell\s+me\s+about)\b", clean_orig, flags=re.IGNORECASE)
-            if prefix_match:
-                prefix = prefix_match.group(0).capitalize()
-                if "how does" in prefix.lower():
-                    return f"{prefix} {clean_resp_text} work?"
-                return f"{prefix} {clean_resp_text}"
-            return f"Explain {clean_resp_text}"
+        # If entity is already a complete question or statement, return it directly
+        if re.match(r"^(?:what\s+is|what\s+are|how\s+does|how\s+do|how\s+to|why\s+does|which\s+port|explain\s+[a-zA-Z0-9_-]+\s+[a-zA-Z0-9_-]+)\b", entity, flags=re.IGNORECASE):
+            return self._clean_refined(entity)
 
-        # Case 3: Incomplete comparison e.g. orig: "Compare SVM", resp: "Logistic Regression"
-        if re.search(r"\b(?:compare|vs|versus)\b", clean_orig, flags=re.IGNORECASE) and not re.search(r"\b(?:vs|versus|with|to)\b", clean_orig, flags=re.IGNORECASE):
-            if clean_resp_text.lower().startswith(("vs", "versus", "to", "with", "and")):
-                return self._clean_refined(f"{clean_orig} {clean_resp_text}")
-            else:
-                return self._clean_refined(f"{clean_orig} vs {clean_resp_text}")
+        # Grammatically qualify entity with article if it is a singular protocol/model/algorithm descriptor
+        entity_lower = entity.lower()
+        if not entity_lower.startswith(("the ", "a ", "an ")) and (
+            entity_lower.endswith(" protocol") or 
+            entity_lower.endswith(" model") or 
+            entity_lower.endswith(" architecture")
+        ):
+            entity_with_article = f"the {entity}"
+        else:
+            entity_with_article = entity
 
-        # Case 4: Missing context with pronouns e.g. "how does it work", resp: "TCP 3-way handshake"
-        if any(re.search(p, clean_orig, flags=re.IGNORECASE) for p in self.PRONOUN_PATTERNS):
-            if re.search(r"\b(?:how\s+does\s+it\s+work|how\s+it\s+works)\b", clean_orig, flags=re.IGNORECASE):
-                return f"How does {clean_resp_text} work?"
-            elif "advantages" in clean_orig.lower():
-                return f"What are the advantages of {clean_resp_text}?"
-            elif "explain" in clean_orig.lower():
-                return f"Explain {clean_resp_text}"
-            else:
-                # Replace pronouns cleanly
-                replaced = re.sub(r"\b(it|this|that|them)\b", clean_resp_text, clean_orig, flags=re.IGNORECASE)
-                return self._clean_refined(replaced)
+        # 1. Pattern: "How does it work?" / "How it works"
+        if re.search(r"\bhow\s+does\s+(?:it|this|that)\s+work\b", clean_orig, flags=re.IGNORECASE) or re.search(r"\bhow\s+it\s+works\b", clean_orig, flags=re.IGNORECASE):
+            return self._clean_refined(f"How does {entity_with_article} work?")
 
-        # Case 5: Incomplete query e.g. "how to", resp: "configure TCP socket"
+        # 2. Pattern: "What is it?" / "What is this?" / "What is that?"
+        if re.search(r"\bwhat\s+is\s+(?:it|this|that)\b", clean_orig, flags=re.IGNORECASE) and len(clean_orig.split()) <= 4:
+            return self._clean_refined(f"What is {entity}?")
+
+        # 3. Pattern: "What are its advantages?" / "What are its features?" / "What are its benefits?"
+        attr_match = re.search(r"\bwhat\s+are\s+(?:its|their)\s+([a-zA-Z0-9_\s]+)", clean_orig, flags=re.IGNORECASE)
+        if attr_match:
+            attribute = attr_match.group(1).strip("?. ")
+            return self._clean_refined(f"What are the {attribute} of {entity}?")
+
+        # 4. Pattern: "Explain it." / "Explain this." / "Tell me about it." / "Describe it."
+        imperative_match = re.search(r"^(explain|tell\s+me\s+about|describe)\s+(?:it|this|that|them)[\.\?!]?$", clean_orig, flags=re.IGNORECASE)
+        if imperative_match:
+            verb = imperative_match.group(1).capitalize()
+            return self._clean_refined(f"{verb} {entity}")
+
+        # 5. Pattern: "Compare it with UDP." / "Compare it to UDP." / "Compare it vs UDP."
+        compare_it_match = re.search(r"\bcompare\s+(?:it|this|that)\s+(with|to|vs|versus)\s+([a-zA-Z0-9_-]+)", clean_orig, flags=re.IGNORECASE)
+        if compare_it_match:
+            prep = compare_it_match.group(1)
+            target = compare_it_match.group(2)
+            return self._clean_refined(f"Compare {entity} {prep} {target}")
+
+        # 6. Pattern: Incomplete comparison "Compare SVM"
+        if re.search(r"\bcompare\s+([a-zA-Z0-9_-]+)\s*$", clean_orig, flags=re.IGNORECASE):
+            target_first = re.search(r"\bcompare\s+([a-zA-Z0-9_-]+)\s*$", clean_orig, flags=re.IGNORECASE).group(1)
+            if entity.lower().startswith(("vs", "versus", "with", "to")):
+                return self._clean_refined(f"Compare {target_first} {entity}")
+            return self._clean_refined(f"Compare {target_first} vs {entity}")
+
+        # 7. Pattern: Polysemous/ambiguous domain keyword replacement e.g. "Explain tree" -> "Explain Decision Trees"
+        for term in self.DOMAIN_DISAMBIGUATION_MAP:
+            if re.search(rf"\b{term}\b", clean_orig, flags=re.IGNORECASE):
+                refined = re.sub(rf"\b{term}\b", entity, clean_orig, flags=re.IGNORECASE)
+                return self._clean_refined(refined)
+
+        # 8. Missing context general pronoun replacement
+        if any(re.search(p, clean_orig, flags=re.IGNORECASE) for p in self.PRONOUN_PATTERNS) or re.search(r"\b(it|this|that|its|their)\b", clean_orig, flags=re.IGNORECASE):
+            replaced = re.sub(r"\b(its|their)\b", f"{entity}'s", clean_orig, flags=re.IGNORECASE)
+            replaced = re.sub(r"\b(it|this|that|them)\b", entity, replaced, flags=re.IGNORECASE)
+            return self._clean_refined(replaced)
+
+        # 9. Incomplete query prefix e.g. "how to", "steps to"
         if re.match(r"^(?:how\s+to|how\s+do\s+i|steps\s+to|explain)\b", clean_orig, flags=re.IGNORECASE) and len(clean_orig.split()) <= 3:
-            return self._clean_refined(f"{clean_orig} {clean_resp_text}")
+            return self._clean_refined(f"{clean_orig} {entity}")
 
-        # Case 6: Response already is a standalone question
-        if re.match(r"^(?:what|how|why|which|explain|compare|define)\b", clean_resp_text, flags=re.IGNORECASE):
-            return clean_resp_text
-
-        # Case 7: General fusion
-        return self._clean_refined(f"{clean_orig} ({clean_resp_text})")
+        # Fallback fusion
+        return self._clean_refined(f"{clean_orig} ({entity})")
 
     def _generate_comparison_options(self, entity: str) -> List[str]:
         """Dynamically generate domain-relevant comparison options for an entity."""
