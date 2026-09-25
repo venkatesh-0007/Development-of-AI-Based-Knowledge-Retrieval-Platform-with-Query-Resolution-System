@@ -55,7 +55,13 @@ class QueryUnderstandingAgent:
         lower = cleaned.lower()
 
         # Step 1: Detect Domain
-        detected_domain = active_domain or self.detect_domain(cleaned)
+        detected_from_query = self.detect_domain(cleaned)
+        if detected_from_query != "general":
+            detected_domain = detected_from_query
+        elif active_domain and active_domain != "general":
+            detected_domain = active_domain
+        else:
+            detected_domain = "general"
 
         # Step 2: Ambiguity / Clarification check
         needs_clarification, clar_req = self.clarification_agent.detect_clarification_need(
@@ -115,21 +121,30 @@ class QueryUnderstandingAgent:
 
     def _extract_entities(self, text: str) -> List[str]:
         # Extract potential acronyms, technical terms, and noun phrases
+        STOP_WORDS = {
+            "what", "how", "why", "which", "where", "when", "who", "whom",
+            "explain", "compare", "describe", "tell", "does", "do", "did",
+            "can", "could", "is", "are", "was", "were", "please", "step", "steps"
+        }
         candidates = re.findall(r"\b[A-Z0-9]{2,}\b|\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", text)
         lower = text.lower()
         known_techs = [
             "tcp", "udp", "ip", "dns", "http", "https", "ssh", "bgp", "osi",
             "supervised learning", "unsupervised learning", "reinforcement learning",
-            "decision tree", "random forest", "svm", "neural network", "transformer",
+            "decision tree", "random forest", "svm", "support vector machine", "neural network", "transformer",
             "bert", "gpt", "cia triad", "zero trust", "aes", "rsa", "sha-256", "diffie-hellman",
             "phishing", "sql injection", "ransomware", "microservices", "kubernetes", "docker"
         ]
-        found = list(candidates)
+        found = [c for c in candidates if c.lower() not in STOP_WORDS]
         for tech in known_techs:
             if re.search(rf"\b{re.escape(tech)}\b", lower):
                 found.append(tech.upper())
         return list(dict.fromkeys(found))
 
     def _extract_sub_questions(self, text: str) -> List[str]:
-        parts = [p.strip() for p in re.split(r"\?+|\band\s+also\b|\bmoreover\b", text) if len(p.strip()) > 5]
+        parts = [
+            p.strip()
+            for p in re.split(r"\?+|\band\s+(?:how|what|why|which|where|when|can|do|does|also)\b|\bmoreover\b|;\s*", text, flags=re.IGNORECASE)
+            if len(p.strip()) > 3
+        ]
         return parts if len(parts) > 1 else [text]

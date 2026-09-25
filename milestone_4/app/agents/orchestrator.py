@@ -105,6 +105,10 @@ class MultiAgentOrchestrator:
                 retrieval_result=retrieval_result
             )
 
+            if effective_query != query and agent_response.transparency:
+                agent_response.transparency.anaphora_rewritten_query = effective_query
+                agent_response.transparency.is_multi_turn = True
+
             # Step 6: Record Turn in Memory
             if session:
                 turn = ConversationTurn(

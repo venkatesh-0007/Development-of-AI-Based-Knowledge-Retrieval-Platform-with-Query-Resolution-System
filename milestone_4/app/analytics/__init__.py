@@ -9,6 +9,7 @@ from .models import (
 from .storage import AnalyticsStorage
 from .gap_detector import KnowledgeGapDetector
 from .tracker import AnalyticsTracker
+from .analyzer import AnalyticsAnalyzer
 
 __all__ = [
     "QueryLogEntry",
@@ -19,5 +20,6 @@ __all__ = [
     "GapSeverity",
     "AnalyticsStorage",
     "KnowledgeGapDetector",
-    "AnalyticsTracker"
+    "AnalyticsTracker",
+    "AnalyticsAnalyzer"
 ]

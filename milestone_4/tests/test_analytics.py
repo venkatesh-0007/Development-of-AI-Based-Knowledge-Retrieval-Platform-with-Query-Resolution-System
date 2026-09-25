@@ -138,5 +138,34 @@ class TestAnalyticsModule(unittest.TestCase):
         self.assertEqual(parsed["total_queries"], 5)
         self.assertEqual(len(parsed["queries"]), 5)
 
+    def test_resolution_path_and_sequence_tracking(self):
+        entry = QueryLogEntry(
+            query_id="q_seq_1",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            query_text="Compare TCP and UDP",
+            effective_query="Compare TCP and UDP",
+            domain="computer_networks",
+            query_type="comparative",
+            route_target="retrieval",
+            top_score=0.88,
+            avg_score=0.82,
+            confidence_score=0.86,
+            confidence_level="HIGH",
+            has_sufficient_evidence=True,
+            requires_clarification=False,
+            status=ResolutionStatus.RESOLVED,
+            retrieved_chunk_ids=["c1", "c2"],
+            sources=["network_protocols.txt"],
+            resolution_path="Query Understanding -> Multi-document retrieval -> Comparison response",
+            agent_sequence=["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"],
+            source_count=1
+        )
+        self.storage.log_query(entry)
+        loaded = self.storage.get_query_by_id("q_seq_1")
+        self.assertIsNotNone(loaded)
+        self.assertEqual(loaded.resolution_path, "Query Understanding -> Multi-document retrieval -> Comparison response")
+        self.assertEqual(loaded.agent_sequence, ["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"])
+        self.assertEqual(loaded.source_count, 1)
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,39 @@
+{
+  "benchmark_metadata": {
+    "evaluation_queries_count": 14,
+    "domains_evaluated": [
+      "machine_learning",
+      "computer_networks",
+      "cybersecurity"
+    ],
+    "timestamp": "2026-09-25T14:26:14Z"
+  },
+  "m3_baseline": {
+    "retrieval_recall_at_3": 0.0,
+    "retrieval_precision_at_3": 0.0,
+    "mrr": 0.0,
+    "average_confidence": 0.0,
+    "average_latency_ms": 1.09,
+    "unanswered_rate": 1.0,
+    "routing_accuracy": 0.9286
+  },
+  "m4_optimized": {
+    "retrieval_recall_at_3": 1.0,
+    "retrieval_precision_at_3": 0.95,
+    "mrr": 1.0,
+    "average_confidence": 0.4955,
+    "average_latency_ms": 1.08,
+    "unanswered_rate": 0.0714,
+    "routing_accuracy": 0.9286
+  },
+  "voice_sanitization": {
+    "tested_patterns": [
+      "markdown_headers",
+      "code_blocks",
+      "urls",
+      "citations",
+      "bold_asterisks"
+    ],
+    "all_patterns_cleaned": true
+  }
+}

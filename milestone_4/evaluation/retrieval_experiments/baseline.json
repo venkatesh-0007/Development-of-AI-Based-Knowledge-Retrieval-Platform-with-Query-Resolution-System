@@ -1,0 +1,13 @@
+{
+  "queries_evaluated": 13,
+  "top_k": 3,
+  "recall_at_k": 0.0,
+  "precision_at_k": 0.0,
+  "mrr": 0.0,
+  "average_latency_ms": 0.9,
+  "average_top_score": 0.0,
+  "unanswered_rate": 1.0,
+  "experiment": "Milestone 3 Baseline (Dense Vector, Threshold=0.45, TopK=3)",
+  "chunk_size": 500,
+  "overlap": 50
+}

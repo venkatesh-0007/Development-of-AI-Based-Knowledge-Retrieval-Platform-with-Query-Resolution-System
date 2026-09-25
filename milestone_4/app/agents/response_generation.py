@@ -20,12 +20,18 @@ from .models import (
     VoicePayload
 )
 from .voice import VoiceModule
+from ..confidence.calculator import ConfidenceCalculator, default_confidence_calculator
 
 class ResponseGenerationAgent:
     """Generates grounded responses strictly supported by retrieved context with transparency payload."""
 
-    def __init__(self, llm_client: Optional[Any] = None):
+    def __init__(
+        self,
+        llm_client: Optional[Any] = None,
+        confidence_calculator: Optional[ConfidenceCalculator] = None
+    ):
         self.llm_client = llm_client
+        self.confidence_calculator = confidence_calculator or default_confidence_calculator
         self.voice_module = VoiceModule()
 
     def generate(
@@ -38,7 +44,12 @@ class ResponseGenerationAgent:
         chunks = retrieval_result.chunks
 
         # Case 1: Insufficient Evidence or Zero Chunks
-        if not chunks or retrieval_result.top_score < 0.30:
+        conf_res = self.confidence_calculator.calculate(
+            retrieval_result.top_score,
+            retrieval_result.average_score
+        )
+        min_evidence_threshold = max(0.30, self.confidence_calculator.thresholds.low)
+        if not chunks or retrieval_result.top_score < min_evidence_threshold:
             answer_text = (
                 "No sufficiently relevant information was found in the knowledge base to answer your question. "
                 "The query may refer to concepts outside the currently indexed documentation."
@@ -46,8 +57,8 @@ class ResponseGenerationAgent:
             score_breakdown = TransparencyScoreBreakdown(
                 top_chunk_score=retrieval_result.top_score,
                 avg_top_k_score=retrieval_result.average_score,
-                combined_score=round(0.70 * retrieval_result.top_score + 0.30 * retrieval_result.average_score, 4),
-                confidence_level=ConfidenceLevel.LOW if retrieval_result.top_score > 0 else ConfidenceLevel.NONE
+                combined_score=conf_res.combined_score,
+                confidence_level=conf_res.confidence_level
             )
             transparency = TransparencyPanelPayload(
                 score_breakdown=score_breakdown,

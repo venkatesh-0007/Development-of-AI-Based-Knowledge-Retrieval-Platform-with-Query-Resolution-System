@@ -1,0 +1,22 @@
+{
+  "status": "CALIBRATED_OPTIMAL",
+  "parameters": {
+    "chunk_size": 800,
+    "chunk_overlap": 150,
+    "similarity_threshold": 0.35,
+    "default_top_k": 5,
+    "hybrid_weight_vector": 0.55,
+    "hybrid_weight_lexical": 0.45,
+    "domain_affinity_bonus": 0.05
+  },
+  "measured_metrics": {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.95,
+    "mrr": 1.0,
+    "average_latency_ms": 0.84,
+    "average_top_score": 0.4891,
+    "unanswered_rate": 0.0
+  }
+}

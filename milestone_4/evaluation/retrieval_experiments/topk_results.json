@@ -1,0 +1,32 @@
+[
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.95,
+    "mrr": 1.0,
+    "average_latency_ms": 0.84,
+    "average_top_score": 0.4891,
+    "unanswered_rate": 0.0
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 5,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.9048,
+    "mrr": 1.0,
+    "average_latency_ms": 0.91,
+    "average_top_score": 0.4891,
+    "unanswered_rate": 0.0
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 7,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.9048,
+    "mrr": 1.0,
+    "average_latency_ms": 0.88,
+    "average_top_score": 0.4891,
+    "unanswered_rate": 0.0
+  }
+]

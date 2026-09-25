@@ -25,11 +25,7 @@ class RoutingTarget(str, Enum):
     RETRIEVAL = "retrieval"
     CLARIFICATION = "clarification"
 
-class ConfidenceLevel(str, Enum):
-    HIGH = "HIGH"
-    MEDIUM = "MEDIUM"
-    LOW = "LOW"
-    NONE = "NONE"
+from ..confidence.calculator import ConfidenceLevel, default_confidence_calculator
 
 class ClarificationType(str, Enum):
     AMBIGUOUS_TERM = "ambiguous_term"
@@ -161,18 +157,11 @@ class TransparencyScoreBreakdown:
 
     def __post_init__(self):
         if self.combined_score == 0.0 and (self.top_chunk_score > 0 or self.avg_top_k_score > 0):
-            self.combined_score = round(
-                self.weight_top * self.top_chunk_score + self.weight_avg * self.avg_top_k_score,
-                4
-            )
-            if self.combined_score >= 0.70:
-                self.confidence_level = ConfidenceLevel.HIGH
-            elif self.combined_score >= 0.45:
-                self.confidence_level = ConfidenceLevel.MEDIUM
-            elif self.combined_score > 0.0:
-                self.confidence_level = ConfidenceLevel.LOW
-            else:
-                self.confidence_level = ConfidenceLevel.NONE
+            res = default_confidence_calculator.calculate(self.top_chunk_score, self.avg_top_k_score)
+            self.combined_score = res.combined_score
+            self.confidence_level = res.confidence_level
+        elif self.confidence_level == ConfidenceLevel.NONE and self.combined_score > 0.0:
+            self.confidence_level = default_confidence_calculator.classify(self.combined_score)
 
 @dataclass
 class TransparencyPanelPayload:

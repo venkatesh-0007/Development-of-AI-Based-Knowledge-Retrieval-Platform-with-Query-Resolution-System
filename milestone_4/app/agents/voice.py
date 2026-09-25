@@ -1,17 +1,37 @@
-"""Voice Input and Text-to-Speech Module for Milestone 4 (M4.3).
+"""Voice Input and Text-to-Speech Module for Milestone 4 (M4.3, Phase 10, & Phase 17).
 
-Provides speech synthesis text preparation, markdown sanitization for natural audio output,
-and Web Speech API configuration helpers.
+Features:
+- Speech synthesis text preparation with markdown and citation stripping
+- Automated transcription text validation, normalization, and sanitization
+- Structured error handling for Web Speech API edge cases:
+  * Unsupported browser
+  * Permission denied / microphone blocked
+  * No speech detected
+  * Audio capture failure
+  * Network disconnection
+- Clean spoken-text formatting for browser TTS
 """
 import re
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from .models import SpeechConfig
 
 logger = logging.getLogger(__name__)
 
+
 class VoiceModule:
     """Handles text-to-speech sanitization, utterance formatting, and Web Speech API payload preparation."""
+
+    ERROR_GUIDANCE = {
+        "not-allowed": "Microphone permission denied. Please allow microphone access in your browser settings.",
+        "permission-denied": "Microphone permission was blocked. Check browser address bar to grant audio access.",
+        "no-speech": "No speech detected. Please speak clearly into your microphone and try again.",
+        "audio-capture": "No microphone hardware detected or audio capture failed. Ensure a working microphone is connected.",
+        "network": "Speech recognition network error occurred. Please verify your internet connection.",
+        "not-supported": "Web Speech API is not supported in this browser. Recommended browsers: Chrome, Edge, Safari 14.1+.",
+        "aborted": "Speech listening was aborted before transcription completed.",
+        "language-not-supported": "Selected speech recognition language is not supported by your browser engine."
+    }
 
     def __init__(self, default_config: Optional[SpeechConfig] = None):
         self.config = default_config or SpeechConfig()
@@ -30,8 +50,9 @@ class VoiceModule:
         cleaned = re.sub(r"```[\s\S]*?```", " Code snippet omitted for voice playback. ", cleaned)
         cleaned = re.sub(r"`[^`]+`", "", cleaned)
 
-        # 2. Remove markdown links [text](url) -> text
+        # 2. Remove markdown links [text](url) -> text, and bare URLs
         cleaned = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", cleaned)
+        cleaned = re.sub(r"https?://\S+", "", cleaned)
 
         # 3. Remove standalone citation indicators e.g. [1], [tcp_networking.txt, Chunk 1]
         cleaned = re.sub(r"\[(?:Citation\s*)?[^\]]+\]", "", cleaned)
@@ -45,7 +66,7 @@ class VoiceModule:
         cleaned = re.sub(r"^-{3,}$", "", cleaned, flags=re.MULTILINE)
 
         # 5. Remove emojis and non-standard symbols for smoother voice reading
-        cleaned = re.sub(r"[🟢🟡🟠🔴⚪🚀🤖🧠💬📚📝🔍👉📌⚠️🎙️📊]", "", cleaned)
+        cleaned = re.sub(r"[🟢🟡🟠🔴⚪🚀🤖🧠💬📚📝🔍👉📌⚠️🎙️📊🧩📐]", "", cleaned)
 
         # 6. Normalize whitespace and punctuation
         cleaned = re.sub(r"\n+", ". ", cleaned)
@@ -53,6 +74,44 @@ class VoiceModule:
         cleaned = re.sub(r"\.\s*\.", ".", cleaned)
 
         return cleaned
+
+    def process_transcription(self, raw_transcript: Optional[str]) -> Tuple[bool, str, Optional[str]]:
+        """
+        Validates, normalizes, and sanitizes incoming voice transcription text.
+        Returns: (is_valid: bool, sanitized_text: str, error_message: Optional[str])
+        """
+        if raw_transcript is None:
+            return False, "", "Transcription payload is empty (null)."
+
+        cleaned = raw_transcript.strip()
+        if not cleaned:
+            return False, "", "No speech detected (empty transcript)."
+
+        # Check for client-reported error tokens
+        if cleaned.startswith("[voice_error:") and cleaned.endswith("]"):
+            err_code = cleaned[13:-1].strip()
+            guidance = self.handle_voice_error(err_code)
+            return False, "", guidance.get("user_message", f"Speech recognition error: {err_code}")
+
+        # Check for punctuation-only / noise
+        alphanumeric = re.findall(r"[a-zA-Z0-9]", cleaned)
+        if not alphanumeric:
+            return False, "", "Audio did not contain recognizable speech words."
+
+        # Normalize whitespace
+        sanitized = re.sub(r"\s+", " ", cleaned)
+        return True, sanitized, None
+
+    def handle_voice_error(self, error_code: str, details: Optional[str] = None) -> Dict[str, str]:
+        """Provides user-friendly recovery instructions for Web Speech API error states."""
+        clean_code = str(error_code).lower().strip()
+        message = self.ERROR_GUIDANCE.get(clean_code, f"Voice interaction error ({clean_code}). Please retry or type query.")
+        return {
+            "error_code": clean_code,
+            "user_message": message,
+            "details": details or "",
+            "recovery_action": "Try typing your question or grant microphone permissions in browser settings."
+        }
 
     def generate_speech_config(
         self,

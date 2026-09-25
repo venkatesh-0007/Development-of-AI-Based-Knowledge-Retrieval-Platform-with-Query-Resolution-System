@@ -5,13 +5,24 @@ from typing import Optional, List
 
 from .models import QueryLogEntry, ResolutionStatus
 from .storage import AnalyticsStorage
+from ..confidence.calculator import ConfidenceCalculator, default_confidence_calculator
 
 class AnalyticsTracker:
     """Interceps multi-agent orchestration events and records detailed resolution telemetry."""
 
-    def __init__(self, storage: AnalyticsStorage, low_confidence_threshold: float = 0.45):
+    def __init__(
+        self,
+        storage: AnalyticsStorage,
+        low_confidence_threshold: Optional[float] = None,
+        confidence_calculator: Optional[ConfidenceCalculator] = None
+    ):
         self.storage = storage
-        self.low_confidence_threshold = low_confidence_threshold
+        self.confidence_calculator = confidence_calculator or default_confidence_calculator
+        self.low_confidence_threshold = (
+            low_confidence_threshold
+            if low_confidence_threshold is not None
+            else self.confidence_calculator.thresholds.medium
+        )
 
     def record_orchestration(
         self,
@@ -59,9 +70,9 @@ class AnalyticsTracker:
             status = ResolutionStatus.CLARIFICATION_RESOLVED
         elif res.status == "error":
             status = ResolutionStatus.ERROR
-        elif not has_evidence or (retrieval and len(retrieval.chunks) == 0) or conf_score == 0.0:
+        elif not has_evidence or (retrieval and len(retrieval.chunks) == 0) or conf_score == 0.0 or conf_level_str == "NONE":
             status = ResolutionStatus.UNANSWERED
-        elif conf_score < self.low_confidence_threshold:
+        elif conf_score < self.low_confidence_threshold or conf_level_str == "LOW":
             status = ResolutionStatus.LOW_CONFIDENCE
         else:
             status = ResolutionStatus.RESOLVED
@@ -75,6 +86,26 @@ class AnalyticsTracker:
         clarification_id = None
         if res.clarification_request:
             clarification_id = res.clarification_request.clarification_id
+
+        # Determine path and sequence
+        if route_target == "clarification" or res.status == "clarification_requested":
+            resolution_path = "Query Understanding -> Clarification"
+            agent_sequence = ["ConversationMemoryAgent", "QueryUnderstandingAgent", "ClarificationAgent"]
+        elif res.status == "clarified_success":
+            resolution_path = "Clarification -> Query Understanding -> Retrieval -> Response Generation"
+            agent_sequence = ["ClarificationAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"]
+        elif query_type == "procedural":
+            resolution_path = "Query Understanding -> Retrieval -> Step-oriented response"
+            agent_sequence = ["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"]
+        elif query_type == "comparative":
+            resolution_path = "Query Understanding -> Multi-document retrieval -> Comparison response"
+            agent_sequence = ["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"]
+        elif query_type == "multi_part":
+            resolution_path = "Query Understanding -> Decompose -> Retrieve -> Synthesize"
+            agent_sequence = ["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"]
+        else:
+            resolution_path = "Query Understanding -> Retrieval -> Response Generation"
+            agent_sequence = ["ConversationMemoryAgent", "QueryUnderstandingAgent", "RetrievalAgent", "ResponseGenerationAgent"]
 
         entry = QueryLogEntry(
             query_id="qry_" + uuid.uuid4().hex[:12],
@@ -97,7 +128,11 @@ class AnalyticsTracker:
             response_text=res.response.answer if res.response else "",
             latency_ms=res.execution_time_ms,
             session_id=res.session_id,
-            input_modality=input_modality
+            input_modality=input_modality,
+            resolution_path=resolution_path,
+            agent_sequence=agent_sequence,
+            source_count=len(sources),
+            error=res.error
         )
 
         self.storage.log_query(entry)

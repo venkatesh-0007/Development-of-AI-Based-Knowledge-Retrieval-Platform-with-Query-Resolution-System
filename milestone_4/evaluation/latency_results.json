@@ -1,0 +1,101 @@
+{
+  "memory_contextualization_ms": {
+    "mean_ms": 0.044,
+    "median_ms": 0.01,
+    "min_ms": 0.003,
+    "max_ms": 0.341,
+    "p50_ms": 0.01,
+    "p90_ms": 0.12,
+    "p95_ms": 0.225,
+    "p99_ms": 0.317,
+    "sample_count": 14
+  },
+  "query_understanding_ms": {
+    "mean_ms": 0.114,
+    "median_ms": 0.113,
+    "min_ms": 0.094,
+    "max_ms": 0.135,
+    "p50_ms": 0.113,
+    "p90_ms": 0.132,
+    "p95_ms": 0.135,
+    "p99_ms": 0.135,
+    "sample_count": 14
+  },
+  "query_embedding_ms": {
+    "mean_ms": 0.049,
+    "median_ms": 0.052,
+    "min_ms": 0.023,
+    "max_ms": 0.059,
+    "p50_ms": 0.052,
+    "p90_ms": 0.058,
+    "p95_ms": 0.058,
+    "p99_ms": 0.059,
+    "sample_count": 14
+  },
+  "hybrid_retrieval_ms": {
+    "mean_ms": 0.908,
+    "median_ms": 0.806,
+    "min_ms": 0.761,
+    "max_ms": 1.64,
+    "p50_ms": 0.806,
+    "p90_ms": 1.291,
+    "p95_ms": 1.542,
+    "p99_ms": 1.62,
+    "sample_count": 14
+  },
+  "response_generation_ms": {
+    "mean_ms": 0.072,
+    "median_ms": 0.063,
+    "min_ms": 0.04,
+    "max_ms": 0.16,
+    "p50_ms": 0.063,
+    "p90_ms": 0.108,
+    "p95_ms": 0.13,
+    "p99_ms": 0.154,
+    "sample_count": 14
+  },
+  "speech_sanitization_ms": {
+    "mean_ms": 0.051,
+    "median_ms": 0.049,
+    "min_ms": 0.033,
+    "max_ms": 0.088,
+    "p50_ms": 0.049,
+    "p90_ms": 0.072,
+    "p95_ms": 0.079,
+    "p99_ms": 0.086,
+    "sample_count": 14
+  },
+  "memory_recording_ms": {
+    "mean_ms": 0.002,
+    "median_ms": 0.002,
+    "min_ms": 0.002,
+    "max_ms": 0.005,
+    "p50_ms": 0.002,
+    "p90_ms": 0.003,
+    "p95_ms": 0.004,
+    "p99_ms": 0.005,
+    "sample_count": 14
+  },
+  "analytics_persistence_ms": {
+    "mean_ms": 0.358,
+    "median_ms": 0.357,
+    "min_ms": 0.319,
+    "max_ms": 0.402,
+    "p50_ms": 0.357,
+    "p90_ms": 0.395,
+    "p95_ms": 0.398,
+    "p99_ms": 0.402,
+    "sample_count": 14
+  },
+  "end_to_end_orchestration_ms": {
+    "mean_ms": 1.417,
+    "median_ms": 1.365,
+    "min_ms": 0.513,
+    "max_ms": 2.118,
+    "p50_ms": 1.365,
+    "p90_ms": 1.875,
+    "p95_ms": 2.04,
+    "p99_ms": 2.103,
+    "sample_count": 14
+  }
+}

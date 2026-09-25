@@ -1,0 +1,57 @@
+[
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.95,
+    "mrr": 1.0,
+    "average_latency_ms": 0.87,
+    "average_top_score": 0.4891,
+    "unanswered_rate": 0.0,
+    "similarity_threshold": 0.35
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 0.6923,
+    "precision_at_k": 1.0,
+    "mrr": 0.6923,
+    "average_latency_ms": 0.85,
+    "average_top_score": 0.3718,
+    "unanswered_rate": 0.3077,
+    "similarity_threshold": 0.4
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 0.6923,
+    "precision_at_k": 1.0,
+    "mrr": 0.6923,
+    "average_latency_ms": 0.82,
+    "average_top_score": 0.3718,
+    "unanswered_rate": 0.3077,
+    "similarity_threshold": 0.45
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 0.6154,
+    "precision_at_k": 1.0,
+    "mrr": 0.6154,
+    "average_latency_ms": 0.82,
+    "average_top_score": 0.337,
+    "unanswered_rate": 0.3846,
+    "similarity_threshold": 0.5
+  },
+  {
+    "queries_evaluated": 13,
+    "top_k": 3,
+    "recall_at_k": 0.3077,
+    "precision_at_k": 1.0,
+    "mrr": 0.3077,
+    "average_latency_ms": 0.84,
+    "average_top_score": 0.177,
+    "unanswered_rate": 0.6923,
+    "similarity_threshold": 0.55
+  }
+]

@@ -20,15 +20,8 @@ def extract_document_sections(file_bytes: bytes, filename: str) -> List[Dict[str
     if ext not in SUPPORTED_EXTENSIONS:
         raise ValueError(f"Unsupported file type: {ext}")
 
-    lower_fn = filename.lower()
-    if any(k in lower_fn for k in ["ml", "machine_learning", "deep_learning", "neural", "transformer", "algorithm"]):
-        domain_hint = "machine_learning"
-    elif any(k in lower_fn for k in ["network", "tcp", "udp", "protocol", "osi", "cloud", "distributed"]):
-        domain_hint = "computer_networks"
-    elif any(k in lower_fn for k in ["cyber", "security", "crypto", "zero_trust", "incident", "threat", "mitre", "cia"]):
-        domain_hint = "cybersecurity"
-    else:
-        domain_hint = "general"
+    from .benchmark_dataset import get_deterministic_domain
+    domain_hint = get_deterministic_domain(filename)
 
     if ext == ".txt":
         content = file_bytes.decode("utf-8", errors="replace")

@@ -22,7 +22,8 @@ STOPWORDS: Set[str] = {
     "a", "an", "the", "and", "or", "in", "on", "at", "to", "for", "of",
     "with", "by", "from", "is", "are", "was", "were", "be", "been",
     "what", "how", "why", "which", "who", "explain", "describe", "tell",
-    "does", "do", "did", "can", "could", "would", "should"
+    "does", "do", "did", "can", "could", "would", "should", "it", "its",
+    "also", "this", "that", "these", "those", "as", "than", "between"
 }
 
 class RetrievalAgent:
@@ -74,13 +75,43 @@ class RetrievalAgent:
             query_text = query_input.cleaned_query or query_input.query
             query_type = query_input.query_type
             domain = query_input.domain
+            sub_questions = query_input.sub_questions
         else:
             query_text = str(query_input)
             query_type = QueryType.FACTUAL
             domain = "general"
+            sub_questions = []
 
         effective_top_k = self._determine_optimal_top_k(query_type, top_k)
         effective_threshold = threshold if threshold is not None else self.confidence_threshold
+
+        # Multi-part query decomposition routing path
+        if query_type == QueryType.MULTI_PART and sub_questions and len(sub_questions) > 1:
+            decomposed_chunks: List[RetrievalChunk] = []
+            seen_ids = set()
+            for sq in sub_questions:
+                sub_res = self.retrieve(sq, top_k=effective_top_k, threshold=effective_threshold)
+                for chk in sub_res.chunks:
+                    if chk.chunk_id not in seen_ids:
+                        seen_ids.add(chk.chunk_id)
+                        decomposed_chunks.append(chk)
+            if decomposed_chunks:
+                decomposed_chunks.sort(key=lambda x: x.score, reverse=True)
+                top_chunks = decomposed_chunks[:effective_top_k]
+                for idx, c in enumerate(top_chunks):
+                    c.rank = idx + 1
+                top_s = top_chunks[0].score if top_chunks else 0.0
+                avg_s = round(sum(c.score for c in top_chunks) / len(top_chunks), 4) if top_chunks else 0.0
+                return RetrievalResult(
+                    query=query_text,
+                    chunks=top_chunks,
+                    top_score=top_s,
+                    average_score=avg_s,
+                    total_candidates=len(decomposed_chunks),
+                    filter_threshold=effective_threshold,
+                    execution_time_ms=round((time.perf_counter() - start_time) * 1000, 2)
+                )
+
         query_keywords = self._extract_query_keywords(query_text)
 
         # Generate query vector

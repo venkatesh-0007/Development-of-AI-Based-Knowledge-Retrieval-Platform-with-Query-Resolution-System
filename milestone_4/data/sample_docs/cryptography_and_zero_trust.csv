@@ -4,5 +4,5 @@ RSA,Asymmetric,2048/4096 bits,Digital signatures and key exchange,Authentication
 SHA-256,Cryptographic Hash,256 bits output,One-way irreversible digest generation,Integrity
 Diffie-Hellman (ECDH),Key Agreement,256+ bits (elliptic),Secure symmetric shared secret negotiation over insecure channels,Forward Secrecy
 Zero-Knowledge Proof (ZKP),Cryptographic Protocol,Variable,Proves knowledge of secret without disclosing secret itself,Privacy-Preserving Verification
-MFA (Multi-Factor Authentication),Access Control,Dynamic,Requires 2+ independent authentication factors (know, have, are),Identity Assurance
+MFA (Multi-Factor Authentication),Access Control,Dynamic,"Requires 2+ independent authentication factors (know, have, are)",Identity Assurance
 Micro-segmentation,Network Security,Policy-driven,Isolates workloads within data centers to block lateral movement,Containment

@@ -42,6 +42,10 @@ class QueryLogEntry:
     latency_ms: float = 0.0
     session_id: Optional[str] = None
     input_modality: str = "text"  # 'text' or 'voice'
+    resolution_path: str = ""
+    agent_sequence: List[str] = field(default_factory=list)
+    source_count: int = 0
+    error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -61,11 +65,15 @@ class QueryLogEntry:
             "status": self.status.value if isinstance(self.status, ResolutionStatus) else str(self.status),
             "retrieved_chunk_ids": self.retrieved_chunk_ids,
             "sources": self.sources,
+            "source_count": self.source_count if self.source_count else len(self.sources),
             "clarification_id": self.clarification_id,
             "response_text": self.response_text,
             "latency_ms": self.latency_ms,
             "session_id": self.session_id,
-            "input_modality": self.input_modality
+            "input_modality": self.input_modality,
+            "resolution_path": self.resolution_path,
+            "agent_sequence": self.agent_sequence,
+            "error": self.error
         }
 
 @dataclass
@@ -78,6 +86,10 @@ class KnowledgeGapReport:
     frequency: int
     average_confidence: float
     unanswered_count: int
+    low_confidence_count: int = 0
+    average_retrieval_score: float = 0.0
+    domains_involved: List[str] = field(default_factory=list)
+    normalized_query: str = ""
     sample_queries: List[str] = field(default_factory=list)
     suggested_actions: List[str] = field(default_factory=list)
     first_detected: str = ""
@@ -92,6 +104,10 @@ class KnowledgeGapReport:
             "frequency": self.frequency,
             "average_confidence": self.average_confidence,
             "unanswered_count": self.unanswered_count,
+            "low_confidence_count": self.low_confidence_count,
+            "average_retrieval_score": self.average_retrieval_score,
+            "domains_involved": self.domains_involved or [self.domain],
+            "normalized_query": self.normalized_query,
             "sample_queries": self.sample_queries,
             "suggested_actions": self.suggested_actions,
             "first_detected": self.first_detected,

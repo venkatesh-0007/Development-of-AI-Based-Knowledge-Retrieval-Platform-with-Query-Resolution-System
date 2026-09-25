@@ -71,6 +71,18 @@ class AnalyticsStorage:
                 CREATE INDEX IF NOT EXISTS idx_query_logs_confidence ON query_logs(confidence_level)
             """)
 
+            # Migration guards for query_logs
+            for col_def in [
+                ("resolution_path", "TEXT DEFAULT ''"),
+                ("agent_sequence", "TEXT DEFAULT '[]'"),
+                ("source_count", "INTEGER DEFAULT 0"),
+                ("error", "TEXT")
+            ]:
+                try:
+                    cursor.execute(f"ALTER TABLE query_logs ADD COLUMN {col_def[0]} {col_def[1]}")
+                except Exception:
+                    pass
+
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS knowledge_gaps (
                     gap_id TEXT PRIMARY KEY,
@@ -80,12 +92,27 @@ class AnalyticsStorage:
                     frequency INTEGER NOT NULL,
                     average_confidence REAL NOT NULL,
                     unanswered_count INTEGER NOT NULL,
+                    low_confidence_count INTEGER DEFAULT 0,
+                    average_retrieval_score REAL DEFAULT 0.0,
+                    domains_involved TEXT DEFAULT '[]',
+                    normalized_query TEXT DEFAULT '',
                     sample_queries TEXT NOT NULL,
                     suggested_actions TEXT NOT NULL,
                     first_detected TEXT NOT NULL,
                     last_detected TEXT NOT NULL
                 )
             """)
+            # Migration guards for existing databases
+            for col_def in [
+                ("low_confidence_count", "INTEGER DEFAULT 0"),
+                ("average_retrieval_score", "REAL DEFAULT 0.0"),
+                ("domains_involved", "TEXT DEFAULT '[]'"),
+                ("normalized_query", "TEXT DEFAULT ''")
+            ]:
+                try:
+                    cursor.execute(f"ALTER TABLE knowledge_gaps ADD COLUMN {col_def[0]} {col_def[1]}")
+                except Exception:
+                    pass
             conn.commit()
 
     def log_query(self, entry: QueryLogEntry):
@@ -97,8 +124,9 @@ class AnalyticsStorage:
                     query_type, route_target, top_score, avg_score, confidence_score,
                     confidence_level, has_sufficient_evidence, requires_clarification,
                     status, retrieved_chunk_ids, sources, clarification_id,
-                    response_text, latency_ms, session_id, input_modality
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    response_text, latency_ms, session_id, input_modality,
+                    resolution_path, agent_sequence, source_count, error
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 entry.query_id,
                 entry.timestamp,
@@ -120,7 +148,11 @@ class AnalyticsStorage:
                 entry.response_text,
                 entry.latency_ms,
                 entry.session_id,
-                entry.input_modality
+                entry.input_modality,
+                entry.resolution_path,
+                json.dumps(entry.agent_sequence),
+                entry.source_count if entry.source_count else len(entry.sources),
+                entry.error
             ))
             conn.commit()
 
@@ -130,6 +162,12 @@ class AnalyticsStorage:
             status_enum = ResolutionStatus(status_val)
         except ValueError:
             status_enum = ResolutionStatus.RESOLVED
+
+        keys = row.keys()
+        res_path = row["resolution_path"] if "resolution_path" in keys and row["resolution_path"] is not None else ""
+        agent_seq = json.loads(row["agent_sequence"]) if "agent_sequence" in keys and row["agent_sequence"] else []
+        src_count = row["source_count"] if "source_count" in keys and row["source_count"] is not None else 0
+        err_val = row["error"] if "error" in keys else None
 
         return QueryLogEntry(
             query_id=row["query_id"],
@@ -152,7 +190,11 @@ class AnalyticsStorage:
             response_text=row["response_text"] or "",
             latency_ms=row["latency_ms"],
             session_id=row["session_id"],
-            input_modality=row["input_modality"]
+            input_modality=row["input_modality"],
+            resolution_path=res_path,
+            agent_sequence=agent_seq,
+            source_count=src_count,
+            error=err_val
         )
 
     def get_queries(
@@ -271,9 +313,10 @@ class AnalyticsStorage:
                 cursor.execute("""
                     INSERT INTO knowledge_gaps (
                         gap_id, topic, domain, severity, frequency,
-                        average_confidence, unanswered_count, sample_queries,
-                        suggested_actions, first_detected, last_detected
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        average_confidence, unanswered_count, low_confidence_count,
+                        average_retrieval_score, domains_involved, normalized_query,
+                        sample_queries, suggested_actions, first_detected, last_detected
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     gap.gap_id,
                     gap.topic,
@@ -282,6 +325,10 @@ class AnalyticsStorage:
                     gap.frequency,
                     gap.average_confidence,
                     gap.unanswered_count,
+                    gap.low_confidence_count,
+                    gap.average_retrieval_score,
+                    json.dumps(gap.domains_involved or [gap.domain]),
+                    gap.normalized_query,
                     json.dumps(gap.sample_queries),
                     json.dumps(gap.suggested_actions),
                     gap.first_detected,
@@ -301,6 +348,12 @@ class AnalyticsStorage:
                 except ValueError:
                     sev_enum = GapSeverity.MEDIUM
 
+                keys = r.keys()
+                low_conf = r["low_confidence_count"] if "low_confidence_count" in keys else 0
+                avg_ret = r["average_retrieval_score"] if "average_retrieval_score" in keys else 0.0
+                domains_inv = json.loads(r["domains_involved"]) if ("domains_involved" in keys and r["domains_involved"]) else [r["domain"]]
+                norm_q = r["normalized_query"] if "normalized_query" in keys else ""
+
                 gaps.append(KnowledgeGapReport(
                     gap_id=r["gap_id"],
                     topic=r["topic"],
@@ -309,6 +362,10 @@ class AnalyticsStorage:
                     frequency=r["frequency"],
                     average_confidence=r["average_confidence"],
                     unanswered_count=r["unanswered_count"],
+                    low_confidence_count=low_conf,
+                    average_retrieval_score=avg_ret,
+                    domains_involved=domains_inv,
+                    normalized_query=norm_q,
                     sample_queries=json.loads(r["sample_queries"]),
                     suggested_actions=json.loads(r["suggested_actions"]),
                     first_detected=r["first_detected"],
