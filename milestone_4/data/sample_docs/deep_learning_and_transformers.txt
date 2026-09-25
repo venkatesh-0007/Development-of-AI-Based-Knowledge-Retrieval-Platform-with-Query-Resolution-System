@@ -1,0 +1,15 @@
+Deep Learning and Transformer Architectures
+
+1. Neural Networks and Backpropagation:
+Deep learning is based on artificial neural networks with multiple representation layers. A standard Multi-Layer Perceptron (MLP) consists of an input layer, hidden layers with non-linear activation functions (ReLU, GELU, Sigmoid), and an output layer. Optimization is driven by Gradient Descent and the Backpropagation algorithm, which calculates the gradient of the loss function with respect to each network weight using the mathematical chain rule of calculus.
+
+2. Convolutional and Recurrent Networks:
+Convolutional Neural Networks (CNNs) utilize spatial convolution kernels and pooling layers to extract translation-invariant visual features, dominating computer vision tasks such as image classification and object detection. Recurrent Neural Networks (RNNs) and Long Short-Term Memory (LSTM) networks process sequential data by maintaining internal hidden states, addressing vanishing gradients through specialized input, forget, and output gating mechanisms.
+
+3. Transformer Architecture and Attention Mechanism:
+Introduced in 'Attention Is All You Need', the Transformer architecture discarded recurrence entirely in favor of the Multi-Head Self-Attention mechanism. Scaled dot-product attention computes compatibility between queries (Q), keys (K), and values (V) according to the formula:
+Attention(Q, K, V) = softmax(Q * K^T / sqrt(d_k)) * V
+Multi-head attention projects queries, keys, and values into multiple representation subspaces, enabling the model to jointly attend to information from different positions and linguistic relationships.
+
+4. Large Language Models (LLMs) and Pretraining:
+Modern LLMs are built upon Transformer decoder-only (e.g., GPT series) or encoder-only (e.g., BERT) foundations. Decoder models are trained autoregressively on next-token prediction objectives over trillions of tokens, acquiring broad reasoning and zero-shot problem-solving capabilities. Fine-tuning paradigms include Supervised Fine-Tuning (SFT), Parameter-Efficient Fine-Tuning (PEFT/LoRA), and Reinforcement Learning from Human Feedback (RLHF).

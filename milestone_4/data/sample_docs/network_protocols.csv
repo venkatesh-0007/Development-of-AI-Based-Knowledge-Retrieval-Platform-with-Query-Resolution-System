@@ -1,0 +1,9 @@
+Protocol,Layer,Port,Transport_Type,Description,Reliability
+HTTP,Application,80,TCP,Hypertext Transfer Protocol for web resource retrieval,Reliable
+HTTPS,Application,443,TCP,HTTP secured over TLS/SSL encryption,Reliable
+DNS,Application,53,UDP/TCP,Domain Name System translating hostnames to IP addresses,Best-Effort/Reliable
+SSH,Application,22,TCP,Secure Shell for encrypted remote terminal access and commands,Reliable
+TCP,Transport,None,IP,Transmission Control Protocol connection-oriented byte stream,Reliable
+UDP,Transport,None,IP,User Datagram Protocol connectionless low-latency packet transmission,Unreliable
+BGP,Network,179,TCP,Border Gateway Protocol for inter-autonomous system routing,Reliable
+ICMP,Network,None,IP,Internet Control Message Protocol for error reporting and diagnostics (ping),Best-Effort

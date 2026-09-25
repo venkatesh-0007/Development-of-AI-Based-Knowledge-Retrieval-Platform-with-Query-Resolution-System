@@ -1,0 +1,23 @@
+Computer Networking Fundamentals and Architecture
+
+Computer networking enables autonomous computing devices to exchange data through physical or wireless telecommunication links. Communication is structured hierarchically according to standardized reference models.
+
+1. The OSI 7-Layer Reference Model:
+The Open Systems Interconnection (OSI) model divides network communication into seven functional abstraction layers:
+- Layer 7: Application Layer (HTTP, FTP, SMTP, DNS, SSH) - interfaces directly with user applications.
+- Layer 6: Presentation Layer - handles data formatting, encryption, and compression (e.g., TLS, ASCII).
+- Layer 5: Session Layer - establishes, manages, and terminates conversational sessions between processes.
+- Layer 4: Transport Layer (TCP, UDP) - manages end-to-end communication, segmentation, flow control, and error recovery.
+- Layer 3: Network Layer (IP, ICMP, OSPF, BGP) - handles logical IP addressing, packet forwarding, and path selection across interconnected networks.
+- Layer 2: Data Link Layer (Ethernet, Wi-Fi 802.11) - handles node-to-node frame delivery, MAC addressing, and media access control.
+- Layer 1: Physical Layer - transmits raw bit streams over physical transmission media (cables, radio waves, optical fibers).
+
+2. The TCP/IP Protocol Stack:
+The operational Internet is based on the pragmatic 4-layer TCP/IP suite: Application, Transport, Internet, and Network Access. The Internet Protocol (IP) provides connectionless, best-effort packet delivery across heterogeneous networks using IPv4 (32-bit addresses) or IPv6 (128-bit addresses).
+
+3. TCP Three-Way Handshake and Reliability:
+Transmission Control Protocol (TCP) ensures reliable, in-order byte stream delivery through connection-oriented state management. Establishing a TCP connection requires a three-step handshake:
+Step 1: The client sends a SYN packet with an initial sequence number (ISN_c).
+Step 2: The server responds with a SYN-ACK packet, acknowledging ISN_c + 1 and providing its own sequence number (ISN_s).
+Step 3: The client replies with an ACK packet acknowledging ISN_s + 1, completing connection establishment.
+TCP reliability is maintained via sequence numbers, checksum validation, selective acknowledgments (SACK), sliding-window flow control, and adaptive congestion control algorithms (e.g., Tahoe, Reno, BBR).

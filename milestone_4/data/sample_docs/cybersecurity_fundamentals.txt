@@ -1,0 +1,19 @@
+Cybersecurity Fundamentals and Defense Architectures
+
+Cybersecurity encompasses the technologies, processes, and practices designed to protect networks, devices, programs, and data from attack, damage, or unauthorized access.
+
+1. The CIA Triad:
+The foundational security objective rests on three core pillars:
+- Confidentiality: Ensuring sensitive information is accessible only to authorized entities through encryption, access control lists (ACLs), and strict classification.
+- Integrity: Safeguarding the accuracy, consistency, and trustworthiness of data across its lifecycle via cryptographic checksums, hashing, and digital signatures.
+- Availability: Guaranteeing authorized users have timely, reliable access to critical assets and services through redundancy, load balancing, fault tolerance, and DDoS mitigation.
+
+2. Defense in Depth:
+Defense in Depth is an information assurance strategy that deploys multiple layered security defenses throughout an IT environment. If one defense mechanism fails or is bypassed (e.g., firewall), secondary layers (e.g., intrusion detection systems, endpoint detection, host isolation, database encryption) immediately thwart or contain the adversary.
+
+3. Zero Trust Security Architecture:
+Traditional perimeter-based security ("castle-and-moat") assumed everything inside the internal corporate network was inherently trustworthy. In contrast, Zero Trust operates under the fundamental maxim: 'Never Trust, Always Verify'.
+Core principles of Zero Trust include:
+- Explicit Verification: Continuously authenticate and authorize based on all available data points, including user identity, device health, location, workload, and behavioral telemetry.
+- Least Privilege Access: Restrict user and service rights strictly using Just-In-Time (JIT) and Just-Enough-Access (JEA) models to limit lateral movement.
+- Assume Breach: Operate under the assumption that adversaries are already inside the environment; segment network perimeters micro-segmentally and encrypt all communications end-to-end.

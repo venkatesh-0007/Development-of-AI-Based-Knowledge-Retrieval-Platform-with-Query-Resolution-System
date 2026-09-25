@@ -1,0 +1,18 @@
+Cloud Computing and Distributed Systems
+
+1. Cloud Service and Deployment Models:
+Cloud computing delivers computing services—including servers, storage, databases, networking, software, and analytics—over the internet.
+Service Models include:
+- Infrastructure as a Service (IaaS): Provides raw compute virtual machines, storage, and networking (e.g., AWS EC2, Google Compute Engine).
+- Platform as a Service (PaaS): Provides managed runtime environments and deployment pipelines without hardware administration (e.g., AWS Elastic Beanstalk, Heroku).
+- Software as a Service (SaaS): Delivers complete, cloud-hosted end-user applications (e.g., Google Workspace, Microsoft 365).
+
+2. Microservices Architecture and Containerization:
+Modern distributed applications decompose monolithic codebases into autonomous, independently deployable microservices communicating via lightweight protocols (RESTful APIs, gRPC, event message brokers). Containerization with Docker bundles applications and their dependencies into immutable runtime containers. Kubernetes orchestrates container deployment, automated horizontal scaling, self-healing restarts, and service discovery across multi-node clusters.
+
+3. Distributed Systems Consistency and the CAP Theorem:
+Eric Brewer's CAP theorem states that a distributed data store can simultaneously guarantee at most two out of three characteristics:
+- Consistency (C): Every read receives the most recent write or an error.
+- Availability (A): Every non-failing node returns a response for any request (without guarantee that it contains the most recent write).
+- Partition Tolerance (P): The system continues to operate despite arbitrary network partition message loss or node disconnects.
+Because network partitions are inevitable in distributed systems, architectures must choose between CP (favoring strong consistency, like Raft and Paxos databases) and AP (favoring high availability and eventual consistency, like DynamoDB and Cassandra).

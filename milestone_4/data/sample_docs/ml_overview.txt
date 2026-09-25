@@ -1,0 +1,16 @@
+Machine Learning and Artificial Intelligence Overview
+
+Machine Learning (ML) is a subset of Artificial Intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. The core focus of machine learning is to develop computer programs that can access data and use it to learn for themselves.
+
+1. Supervised Learning:
+Supervised learning involves training an algorithm using labeled training data consisting of input-output pairs. The algorithm learns a mapping function from input variables to output targets. Common applications include classification (e.g., spam filtering, image recognition) and regression (e.g., house price prediction, stock forecasting). Widely used supervised algorithms include Linear Regression, Logistic Regression, Support Vector Machines (SVM), Decision Trees, Random Forests, and Neural Networks.
+
+2. Unsupervised Learning:
+Unsupervised learning trains models on unlabeled data, discovering hidden patterns, intrinsic groupings, or underlying distributions without human intervention. Key techniques include clustering (grouping similar data points, such as K-Means and Hierarchical Clustering) and dimensionality reduction (reducing features while preserving variance, such as Principal Component Analysis (PCA) and t-SNE). Unsupervised learning is frequently applied in customer segmentation, anomaly detection, and exploratory data analysis.
+
+3. Reinforcement Learning:
+Reinforcement Learning (RL) is a goal-oriented paradigm where an autonomous agent learns to make optimal decisions by interacting with an environment. The agent takes actions, receives feedback in the form of rewards or penalties, and learns a policy to maximize cumulative rewards over time through trial and error. Major algorithms include Q-Learning, Deep Q-Networks (DQN), and Proximal Policy Optimization (PPO).
+
+4. Model Evaluation and Overfitting:
+Evaluating model performance requires robust validation metrics. Classification models are evaluated using Precision, Recall, F1-Score, and Area Under the ROC Curve (AUC-ROC). Regression models use Mean Squared Error (MSE) and R-Squared. Overfitting occurs when a model learns noise in the training set and generalizes poorly to unseen data. It is mitigated using techniques such as cross-validation, regularization (L1 Lasso, L2 Ridge), dropout, and early stopping.
+₹

@@ -1,0 +1,20 @@
+Incident Response Framework and Threat Mitigation
+
+1. Incident Response Lifecycle (NIST SP 800-61):
+Computer security incident response is organized into four sequential procedural phases:
+Phase 1 - Preparation: Establishing an incident response team (CSIRT/SOC), defining communication trees, hardening infrastructure, and deploying detection tools (EDR, SIEM).
+Phase 2 - Detection and Analysis: Monitoring network sensors and system logs for indicators of compromise (IoCs), classifying attack vectors, determining severity, and establishing scope.
+Phase 3 - Containment, Eradication, and Recovery:
+  - Containment: Isolating compromised subnets or endpoints to prevent adversary spread (short-term vs long-term containment).
+  - Eradication: Eliminating malware, closing backdoors, revoking compromised credentials, and patching exploited vulnerabilities.
+  - Recovery: Restoring systems from clean verified backups, validating operational stability, and testing services.
+Phase 4 - Post-Incident Activity (Lessons Learned): Conducting retrospective analysis, documenting timelines, calculating financial/operational impact, and improving defensive posture.
+
+2. Common Cyber Threat Vectors:
+- Phishing & Social Engineering: Deceptive emails or communications designed to trick targets into revealing credentials or downloading malicious payloads.
+- SQL Injection (SQLi): Insertion of untrusted input into relational database query strings, allowing unauthorized data retrieval, tampering, or administrative bypass.
+- Cross-Site Scripting (XSS): Injection of malicious scripts into trusted web applications, executing in victim browsers to hijack session tokens.
+- Ransomware: Malware that encrypts organizational files and demands extortion payments for decryption keys, often accompanied by double-extortion exfiltration threats.
+
+3. Threat Hunting and SIEM / SOC Operations:
+Security Operations Centers (SOC) leverage Security Information and Event Management (SIEM) systems to aggregate, correlate, and analyze high-volume log streams across firewalls, servers, and endpoints in real time. Threat hunting utilizes the MITRE ATT&CK matrix to proactively discover stealthy adversary tactics, techniques, and procedures (TTPs) before automated alerts trigger.

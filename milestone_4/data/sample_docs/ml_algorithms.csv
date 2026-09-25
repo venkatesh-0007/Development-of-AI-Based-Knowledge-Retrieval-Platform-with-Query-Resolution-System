@@ -1,0 +1,9 @@
+Algorithm,Type,Primary_Use_Case,Key_Characteristics,Complexity
+Linear Regression,Supervised,Continuous Value Prediction,Models linear relationship between inputs and continuous target,Low
+Logistic Regression,Supervised,Binary Classification,Estimates probability of binary classes using sigmoid activation,Low
+Decision Tree,Supervised,Classification and Regression,Splits feature space using Gini impurity or information gain,Medium
+Random Forest,Supervised,Ensemble Learning,Bagging ensemble of decision trees with feature subsampling,Medium
+Support Vector Machine (SVM),Supervised,High-Dimensional Classification,Finds optimal separating hyperplane maximizing geometric margin using kernels,High
+K-Means Clustering,Unsupervised,Centroid-Based Partitioning,Iteratively assigns points to nearest cluster centroids and recomputes means,Low
+Principal Component Analysis (PCA),Unsupervised,Dimensionality Reduction,Orthogonal linear transformation projecting data onto directions of maximum variance,Medium
+Gradient Boosting,Supervised,High-Accuracy Tabular Modeling,Sequentially trains decision trees to correct residual errors of prior models,High
